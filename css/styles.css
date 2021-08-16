@@ -1,0 +1,204 @@
+/*
+File: styles.css
+GUI Assignment 5: A bit of Scrabble with Drag-and-Drop
+Yue Zhao, UMass Lowell Computer Science, yue_zhao@student.uml.edu
+Copyright (c) 2021 by Yue. All rights reserved. May be freely copied or
+excerpted for educational purposes with credit to the author.
+updated by YZ on Aug 15, 2021 at 11:23 PM
+The goal of this web page is to use jQuery UI to implement one line of Scrabble game with Drag-and-Drop.
+*/
+
+/* set the display style for header, hgroup, nav, footer, figure, figcaption, aside, section, article. Used default value given by the professor */
+header, hgroup, nav, footer, figure, figcaption, aside, section, article {
+	display: block;
+}
+
+/*Update body style to include background color and default font*/
+body {
+	background-color: "#00569f";
+	color: #666666;
+	font-family: Arial, Helvetica, sans-serif;
+}
+
+/* set the style for header section. The major settings include the background color to cover the area and the font weight and color*/
+header {
+	text-align: center;
+	background-color: #000034;
+	color: #FFFFFF;
+	font-weight: bold;
+}
+/* set the style for section with auto-width class. The major settings include the width*/
+.no-padding {
+	padding-right: 0px;
+	padding-left: 0px;
+}
+
+/* set the style for section with auto-width class. The major settings include enable horizontal/vertical scrollbar automatically*/
+.auto-width {
+	width: auto;
+}
+
+/* set the style for h1 section. */
+h1 {
+	margin-bottom: 0;
+	padding: 10px;
+	font-family: Georgia, "Times New Roman", serif;
+	font-size: 36px;
+}
+
+/* set the style for table div section. The major settings include minimum and maximum height.*/
+/* also set this div to be scrollbar automatically when table is over the size of the screen*/
+#game_area {
+	min-height: 550px;
+	max-height: 550px;
+	max-width: 1200px;
+	margin-left: auto;
+	margin-right: auto;
+	box-shadow: 0px 2px 16px grey;
+}
+
+/* set the style for all th cells (header row) inside of table. The major settings include border's color and width, cell's width, etc.*/
+#single_row_board { 
+	margin-left: auto; 
+	margin-right: auto;
+	margin-top: 30px; 
+	margin-bottom: 30px; 
+	text-align: center;
+	background-image: url("../graphics_data/Scrabble_Board_OneLine.png");
+	width: 1129px;
+	height: 80px;
+}
+
+/* set the style for all td cells inside of table. The major settings include border's color and width, cell's width, etc.*/
+/* Board slots. Margin, padding, and border thickness are to be set by JavaScript. */
+.single_row_board_slot { 
+	border-style: solid; 
+	border-color: rgba(0, 0, 0, 0.1);
+	float: left; 
+	width: 71px;
+	height: 72px;
+	margin: 1px;
+	border-width: 1px;
+}
+
+/* set the style for all odd number rows inside of table. The major settings include background color and font color.*/
+/* so that all rows with odd index will have different background color than the even index rows.*/
+#score_table { 
+	width: 600px; 
+	margin: 30px auto 10px auto; 
+	padding-bottom: 5px; 
+	border: 1px solid #339933; 
+	font-size: 14px; 
+	text-align: center;
+}
+
+#score_table div {
+	display: inline-block;
+}
+
+/* Values that follow the labels ...*/
+#score_table > div > div:nth-child(2) { 
+	width: 72px; 
+	font-weight: bold; 
+}
+
+/* set the style for first column inside of table. The major settings include background color, border and font color.*/
+#board_rack { 
+	width: 640px;
+	height: 180px;
+	margin-left: auto;
+	margin-right: auto;
+	text-align: center;
+	background-image: url("../graphics_data/scrabble-tile-holder-406774_640.png");
+}
+
+.buttonSection { 
+	margin: auto; 
+	margin-bottom: 20px; 
+	text-align: center;
+}
+
+.letterTile {
+	border-radius: 4px; 
+	margin: 0px; 
+	width: 70px; 
+}
+
+/* Adjust position so the tile sits naturally on the rack and board background image. */
+.letterTileOnRack  {
+	margin: 27px 5px 0px 5px; 
+}
+
+.letterTileOnBoard {
+	top: 3px; 
+}
+
+.letterTileInReplacingDialog { 
+	width: 40px; 
+	height: 44px; 
+	margin: 1px; 
+	float: left; 
+}
+
+.letterTileInReplacingDialog:hover { 
+	cursor: pointer; 
+	box-shadow: 0px 0px 5px blue; 
+}
+
+/* Highlight drop targets when dragging a tile and hovering over a specific board slot. */
+.highlightDropTarget {
+	box-shadow: 0px 0px 15px green;
+}
+
+.highlightHoverTarget { 
+	box-shadow: 0px 0px 15px blue; 
+}
+
+.hidden {
+	display:none;
+}
+
+/* Button style (button, hover, active) copied from http://www.bestcssbuttongenerator.com/#/19. */
+button {
+	box-shadow: 3px 4px 0px 0px #1564ad;
+	background:linear-gradient(to bottom, #79bbff 5%, #378de5 100%);
+	background-color:#79bbff;
+	border-radius:5px;
+	border:1px solid #337bc4;
+	display:inline-block;
+	cursor:pointer;
+	color:#ffffff;
+	font-family:Arial;
+	font-size:17px;
+	font-weight:bold;
+	padding:12px 44px;
+	text-decoration:none;
+	text-shadow:0px 1px 0px #528ecc;
+}
+button:hover {
+	background:linear-gradient(to bottom, #378de5 5%, #79bbff 100%);
+	background-color:#378de5;
+}
+button:active {
+	position:relative;
+	top:1px;
+}
+button:disabled {
+	color: gray;
+	cursor: default;
+}
+
+#remaining_tiles_section {
+	text-align: center;
+	font-weight: bold;
+	color:red;
+	display: inline;
+}
+
+#errorSection {
+	text-align: center;
+	font-weight: bold;
+	color:red;
+	display: inline;
+	margin-bottom: 20px;
+}

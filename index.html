@@ -1,0 +1,82 @@
+<!--
+File: index.html
+GUI Assignment 5: A bit of Scrabble with Drag-and-Drop
+Yue Zhao, UMass Lowell Computer Science, yue_zhao@student.uml.edu
+Copyright (c) 2021 by Yue. All rights reserved. May be freely copied or
+excerpted for educational purposes with credit to the author.
+updated by YZ on Aug 15, 2021 at 11:23 PM
+The goal of this web page is to use jQuery UI to implement one line of Scrabble game with Drag-and-Drop.
+-->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>A bit of Scrabble with Drag-and-Drop</title>
+
+    <!-- Reference jquery, jquery validate plugin, jquery ui and jquery ui css through CDN -->
+    <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+    <script src="https://code.jquery.com/jquery-2.2.4.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.12.1/jquery-ui.js"></script>
+
+    <!-- customized css and js file for this project -->
+    <link rel="stylesheet" type="text/css" href="css/styles.css">
+    <script src="graphics_data/Scrabble_Pieces_AssociativeArray_Jesse.js"></script>
+    <script src="js/scrabbleGame.js"></script>
+</head>
+
+<body style="cursor: auto;">
+  <!-- Defines the content area which may not correspond to the entire screen size. -->
+  <div id="game_area" class="container no-padding">
+    <header>
+      <h1>One Line Scrabble with Drag-and-Drop</h1>
+    </header>
+    <div class="col-md-9 auto-width">
+        <div class="col-md-3">
+        </div>
+        <div>
+                <!-- Scrabble single row board. Will attach board tile slot to it for drag and drop tile to each slot. -->
+                <div id="single_row_board"></div>
+                <div>
+                    <table>
+                        <!-- Score table -->
+                        <div id="score_table">
+                            <!-- Cumulative score for this round -->
+                            <div>
+                            <div>Game Score:</div>
+                            <div id="score">0</div>
+                            </div>
+                            <!-- Highest score -->
+                            <div>
+                            <div>Highest Score:</div>
+                            <div id="highestScore">&minus;</div>
+                            </div>
+                        </div>
+                    </table>
+                </div>                
+                <!-- List of conditions that the word must meet. JavaScript highlights the check (v) icon next to each of them
+                        as the user builds a word. -->
+                 <div id="errorSection">
+                    <div id="noGapError" class="hidden">There should be no gap between letters to form a word.</div>
+                    <div id="twoLettersError" class="hidden">There should be at least two letters to form a word.</div>
+                </div>
+                <!-- Buttons section -->
+                <div class="buttonSection">
+                    <button id="completeGameButton" onclick="completeGame()" class="hidden">Complete Game</button>
+                    <button id="nextWordButton" onclick="tryNextWord()">Next Word</button>
+                    <button id="restartButton" onclick="newGame()">Start Over</button>
+                </div>
+        
+                <!-- There are 7 letter tiles in the Rack for each round. Will randomly attach word tile from the 100 tiles -->
+                <div id="board_rack"></div>
+                
+                <div id="remaining_tiles_section">
+                    <div>Remaining Tiles:</div>
+                    <div id="remainingTiles"></div>
+                </div>
+        </div>
+    </div>
+  </div>
+</body>
+</html>
