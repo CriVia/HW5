@@ -80,7 +80,7 @@ function initializeSingleRowBoard() {
 
   for (rIndex = 0; rIndex < singleRowBoard.rowCount; ++rIndex) {
     for (cIndex = 0; cIndex < singleRowBoard.columnCount; ++cIndex) {
-        singleRowBoardSlot = $("<div id='single_row_board_slot' class='single_row_board_slot' row='" + rIndex + "' col='" + cIndex + "' />");
+        singleRowBoardSlot = $("<div id='single_row_board_slot' row='" + rIndex + "' col='" + cIndex + "' class='single_row_board_slot' />");
       singleRowBoardComponent.append(singleRowBoardSlot);
     }
   }
@@ -198,11 +198,11 @@ function findSlotBasedOnLetterTileId(letterTileId) {
 // Get all remaining letter tiles based on ScrabbleTiles' number-remaining for each tile
 function getRemainingLetterTiles() {
     var remainingLetterTiles = [];
-    var tile, index;
+    var tile;
     for (tile in ScrabbleTiles) {
         if (ScrabbleTiles.hasOwnProperty(tile)) {
             var numRemaining = ScrabbleTiles[tile]["number-remaining"];
-            for (index = 0; index < numRemaining; ++index) {
+            for (var i = 0; i < numRemaining; ++i) {
                 remainingLetterTiles.push(tile);
             }
         }
@@ -219,10 +219,9 @@ function getNRandomLetterTiles(n) {
   var nRandomLetterTiles = [];
   var remainingLetterTiles = getRemainingLetterTiles();
   var remainingLetterTilesLen = remainingLetterTiles.length;
-  var index;
 
   // Try to pick out n letter tiles. If we don't have n tiles, then hand out whatever we have.
-  for (index = 0; index < n; ++index) {
+  for (var i = 0; i < n; ++i) {
     if (remainingLetterTilesLen > 0) {
       var randomIndex = Math.floor(Math.random() * remainingLetterTilesLen);
       var randomLetter = remainingLetterTiles[randomIndex];
@@ -263,110 +262,103 @@ function toggleButtons(showCompleteGameButton) {
   }
 }
 
-// Resets the board and tiles. Starts the first word with a fresh score.
-function newGame() {
-  // Clear the rack. (We're putting all tiles back to the deck.)
-  $("#board_rack img").remove();
-
-  // Remove all tiles from the board.
+// Remove all tiles from the board and clear rack. Used when clicking 'complete game', 'next word' or 'start over' button.
+function clearGameBoard() {
   clearSingleRowBoard();
+  $("#board_rack img").remove();
+}
 
-  // Reset the deck data structure.
+// Resets the board and tiles. Clear everything and regenerate the rack and reset scores.
+function newGame() {
+  // Remove all tiles from the board and clear rack.
+  clearGameBoard();
+
+  // Reset ScrabbleTiles' number-remaining same as original-distribution.
   for (var key in ScrabbleTiles) {
     if (ScrabbleTiles.hasOwnProperty(key)) {
       ScrabbleTiles[key]["number-remaining"] = ScrabbleTiles[key]["original-distribution"];
     }
   }
 
-  // If we had consumed all tiles in the previous round, 'complete game' button would be up.
-  // We need 'next-word' button instead now as we're starting a fresh round.
+  // Always display 'Next Word' button by default
   toggleButtons(false);
-
   resetGameScore();
 
-  // Start the first word.
+  // Initialize rack
   tryNextWord();
 }
 
 // Adds up the score. Removes all tiles from the board and adds to the rack whatever number of
 // new tiles needed.
 function tryNextWord() {
-  var i, key, tileImageId, newTile, hand;
+  var newTileLetter, tileImgId, newTile, newTiles;
 
+  // Update game score before getting new tiles
   submitGameScore();
 
-  // Clear the board.
-  clearSingleRowBoard();
+  // Clear the board and rack.
+  clearGameBoard();
 
-  // Draw as many tiles as needed to refill the rack with tiles which number is defined in RACK_SIZE. Lay out the tile images.
-  var remainingTilesInRack = $("#board_rack img").length;
-  hand = getNRandomLetterTiles(RACK_SIZE - remainingTilesInRack);
-  for (i = 0; i < hand.length; ++i) {
-    key = hand[i];
-    tileImageId = generateTileId();
-    newTile = $("<img id=\"" + tileImageId + "\" src=\"" + ScrabbleTileImages[key] + "\" class=\"letterTile\" letter=\"" + key + "\" />");
-    if (key == "_") {
+  // Update rack with new tiles which number is defined in RACK_SIZE.
+  newTiles = getNRandomLetterTiles(RACK_SIZE);
+  for (var i = 0; i < newTiles.length; ++i) {
+    newTileLetter = newTiles[i];
+    tileImgId = getTileImgId();
+
+    newTile = $("<img id=\"" + tileImgId + "\" letter=\"" + newTileLetter + "\" src=\"" + ScrabbleTileImages[newTileLetter] + "\" class=\"letterTile\" />");
+    newTile.addClass("letterTileOnRack");
+    if (newTileLetter === "_") {
       newTile.addClass("blankTile");
     }
-    // Add tile image.
-    $("#board_rack").append(newTile);
 
-    // Apply CSS condition for the tile being on the rack. Apply CSS rule to this class to do minor position
-    // adjustment to the tile image in order to make it sit naturally on the rack background image.
-    newTile.addClass("letterTileOnRack");
-
-    // Make the tile draggable.
+    // Setup draggable attributes for new tile.
     newTile.draggable({
-      revertDuration: 200,  // msec
+      revertDuration: 220,  // msec
       start: function(event, ui) {
-        // Tile should be on top of everything else when being dragged.
-        $(this).css("z-index", TILE_ZINDEX);
         $(this).draggable("option", "revert", "invalid");
+
+        // Put tile on top of everything when dragging.
+        $(this).css("z-index", TILE_ZINDEX);
       },
       stop: function() {
-        // Revert the z-index after drag.
         $(this).css("z-index", "");
       }
     });
-  }
 
-  // Rule validation and display matched error message if need.
-  verifyNoGapRule(false);
-  verifyTwoLettersRule(false);
+    // Attach new tile to the rack
+    $("#board_rack").append(newTile);
+  }
 
   if (remainingLetterTileNum() == 0) {
     // Show 'complete game' button and hide 'next word' button when used all tiles.
     toggleButtons(true);
   } else {
-    // Disable 'next Word' button initially. A valid word must be created in order to
-    // proceed to the next word.
     document.getElementById("nextWordButton").disabled = true;
   }
 }
 
-// Adds up the current board score to the total score and stops the play.
-// The only action that can be taken after this point is restarting the play from the beginning.
+// Disable draggable for all letter tiles and submit the game score for recording. 
 function completeGame() {
-  submitGameScore();
-  document.getElementById("completeGameButton").disabled = true;
-
-  // Prevent all tiles from being dragged any more.
+  // Prevent all tiles from being dragged
   $(".letterTile").draggable("disable");
+  document.getElementById("completeGameButton").disabled = true;
+  submitGameScore();
 }
 
-// Generate a tile ID.
-function generateTileId() {
+// Get tile img ID.
+function getTileImgId() {
   var tileId;
-  generateTileId.id = ++generateTileId.id || 1;
-  tileId = "tile" + generateTileId.id.toString();
+  getTileImgId.id = ++getTileImgId.id || 1;
+  tileId = "tile" + getTileImgId.id.toString();
   return tileId;
 }
 
 // Verify word based on tiles in the single row board against two letters rule and no gap rule.
 function verifyFormedWord() {
-  var cIndex, letter, errorNum = 0, word = "", rIndex = 0;
+  var rIndex = 0, cIndex, letter, hasError = false, word = "";
 
   // Update word string with the letters gathered from tiles in the board.
+  // use special character to represent gap in the board.
   for (cIndex = 0; cIndex < singleRowBoard.columnCount; ++cIndex) {
     letter = singleRowBoard.slots[rIndex][cIndex].letter;
     if (typeof(letter) === "undefined") {
@@ -375,22 +367,24 @@ function verifyFormedWord() {
       word += letter;
     }
   }
-  word = word.replace(/\xC5+$/, "");
-  word = word.replace(/^\xC5+/, "");
+  word = word.replace(/^\xC5+/, "").replace(/\xC5+$/, "");
 
-  // For Empty board
+  // For Empty board, show no error
   if (word == "") {
+    document.getElementById("nextWordButton").disabled = true;
+    verifyNoGapRule(true);
+    verifyTwoLettersRule(true);
+    return false;
+  }
+
+  // Verify gap based on regex
+  var wordWithGapRegex = new RegExp("[A-Z_]\xC5+[A-Z_]");
+  if (wordWithGapRegex.test(word)) {
     verifyNoGapRule(false);
-    ++errorNum;
+    hasError = true;
   } else {
-    // Verify gap based on regex
-    var rgxDisconnectedWord = new RegExp("[A-Z_]\xC5+[A-Z_]");
-    if (rgxDisconnectedWord.test(word)) {
-      verifyNoGapRule(false);
-      ++errorNum;
-    } else {
-      verifyNoGapRule(true);
-    }
+    verifyNoGapRule(true);
+    hasError = false;
   }
 
   // Verify two letters rule
@@ -398,17 +392,12 @@ function verifyFormedWord() {
     verifyTwoLettersRule(true);
   } else {
     verifyTwoLettersRule(false);
-    ++errorNum;
+    hasError = true;
   }
 
   // disable next word button if there is error
-  if (errorNum) {
-    document.getElementById("nextWordButton").disabled = true;
-    return false;
-  }
-
-  document.getElementById("nextWordButton").disabled = false;
-  return word;
+  document.getElementById("nextWordButton").disabled = hasError;
+  return !hasError;
 }
 
 // Verify two letters rule and no gap rule. If invalid, show matched error message on the page.
@@ -431,40 +420,37 @@ function verifyNoGapRule(inValid) {
 // Generate a dialog box to allow user to replace blank tile with any letter. The blank tile's letter will be replaced with the selected letter.
 // Once replaced, the blank tile will performed like the selected letter tile inside of single row board;
 function generateBlankTileReplacingDialog(blankTileDraggable, tileId, row, col) {
-  var tileSelectorDialog = $("<div id='blankTileReplacingDialog'></div>");
-  var letter, replaceTile;
+  var replacingDialog = $("<div id='blankTileReplacingDialog'></div>");
+  var letter, replaceTile, replacingTileLetter;
   
   // Add all letter tiles into replacing dialog for user to choose. Not include blank tile.
   for (letter in ScrabbleTiles) {
     if (letter != "_") {
-      replaceTile = $("<img src='" + ScrabbleTileImages[letter] + "' class='letterTileInReplacingDialog' letter='" + letter + "'>");
+      replaceTile = $("<img src='" + ScrabbleTileImages[letter] + "' letter='" + letter + "' class='letterTileInReplacingDialog'>");
 
-      // Register click event to the image. This callback must make sure everything gets processed
-      // with the selected letter as if it was played normally.
+      // Update blank tile draggable with new letter and image url so it can be displayed correctly in the single row board.
       replaceTile.click(function() {
-        var newLetter = $(this).attr("letter");
-
-        // Replace the letter attribute and the image source of the draggable tile img.
-        blankTileDraggable.attr("letter", newLetter);
-        blankTileDraggable.attr("src", ScrabbleTileImages[newLetter]);
+        replacingTileLetter = $(this).attr("letter");
+        blankTileDraggable.attr("letter", replacingTileLetter);
+        blankTileDraggable.attr("src", ScrabbleTileImages[replacingTileLetter]);
 
         // Reset all the values of board and score
-        tileId = blankTileDraggable.attr("id");
-        dropLetterTileToSlot(row, col, tileId, newLetter);
-        verifyFormedWord();
-        updateGameScore();
+        dropLetterTileToSlot(row, col, tileId, replacingTileLetter);
+        handleTileMove();
 
-        tileSelectorDialog.dialog("close");
+        replacingDialog.dialog("close");
       });
-      tileSelectorDialog.append(replaceTile);
+
+      replacingDialog.append(replaceTile);
     }
   }
-  tileSelectorDialog.css("z-index", DIALOG_ZINDEX);
-  tileSelectorDialog.dialog({
+
+  replacingDialog.dialog({
     modal: true,
     draggable: false,
     resizable: false
   });
+  replacingDialog.css("z-index", DIALOG_ZINDEX);
 }
 
 /*------------Score section-------------*/
@@ -472,51 +458,48 @@ var currentScore = 0;
 var highestScore = 0;
 
 // Get the score for the game based on tiles on the board.
-function getGameScore() {
-  var rIndex, cIndex, letter, letterValue, totalWordScoreMultiplier = 1, boardScore = 0;
+function getBoardScore() {
+  var rIndex, cIndex, letter, letterValue;
+  var wordScoreMultiplier = 1;
+  var boardScore = 0;
 
   if (!verifyFormedWord()) {
     return 0;
   }
 
-  // Add up all the letters' values. Count for letter modifiers on the way.
+  // Calculate board score by adding the letters' values and multiply letter score multiplier.
+  // Calculate word score multiplier and multiply it to the score of the word in the end.
   for (rIndex = 0; rIndex < singleRowBoard.rowCount; ++rIndex) {
     for (cIndex = 0; cIndex < singleRowBoard.columnCount; ++cIndex) {
       letter = singleRowBoard.slots[rIndex][cIndex].letter;
       if (letter) {
         letterValue = ScrabbleTiles[letter].value;
-        boardScore += letterValue * singleRowBoard.slots[rIndex][cIndex].letterScoreMultiplier;
-
-        // We're pre-multiplying all the word modifiers here.
-        totalWordScoreMultiplier *= singleRowBoard.slots[rIndex][cIndex].wordScoreMultiplier;
+        boardScore += singleRowBoard.slots[rIndex][cIndex].letterScoreMultiplier * letterValue;
+        wordScoreMultiplier = singleRowBoard.slots[rIndex][cIndex].wordScoreMultiplier * wordScoreMultiplier;
       }
     }
   }
 
   // Now apply the word modifier.
-  boardScore *= totalWordScoreMultiplier;
-
-  return boardScore;
+  return wordScoreMultiplier * boardScore;
 }
 
 // Updates the game score and score_table texts.
 function updateGameScore() {
-  var boardScore = getGameScore();
+  var boardScore = getBoardScore();
 
   $("#score").css("color", "");
   $("#score").html(currentScore + " (+<span id='boardScore'>" + boardScore + "</span>)");
-  if (boardScore > 0) {
-    $("#boardScore").css("color", "#039603");
-  } else {
+  if (boardScore <= 0) {
     $("#boardScore").css("color", "red");
+  } else {
+    $("#boardScore").css("color", "#039603");
   }
-
-  $("#gameScore").html(highestScore);
 }
 
 // Recalculate the current game score and highest score.
 function submitGameScore() {
-  var boardScore = getGameScore();
+  var boardScore = getBoardScore();
 
   currentScore += boardScore;
   $("#score").html(currentScore);
@@ -539,99 +522,115 @@ function resetGameScore() {
   $("#highestScore").css("color", "");
 }
 
+// When move tile from rack to board or from board to tile
+// the formed word will be changed. So re-verify word and update score
+function handleTileMove() {
+  // Validate and display the word we have so far.
+  verifyFormedWord();
+
+  // Calculate the score and update the page.
+  updateGameScore();
+}
+
+// Toggle tile class based on its location (on board or rack)
+function toggleTileClass(isOnBoard, ui) {
+  if (isOnBoard) {
+    ui.draggable.removeClass("letterTileOnRack");
+    ui.draggable.addClass("letterTileOnSingleRowBoard");
+  } else {
+    ui.draggable.removeClass("letterTileOnSingleRowBoard");
+    ui.draggable.addClass("letterTileOnRack");
+  }
+}
+
 $(window).load(function() {
   // After window load, initialize the single row board to append slots to it
   initializeSingleRowBoard();
 
-  // Make the single row board slots droppable.
+  // Setup droppable for single row board to handle dragging of tiles from rack to the single row board.
   $(".single_row_board_slot").droppable({
     // Highlight droppable slot when a letter tile is dragged to the single row board.
+    activeClass: "highlightDropTarget",
+    hoverClass: "highlightHoverTarget",
     accept: function(draggable) {
-      var rIndex, cIndex;
-
-      rIndex = $(this).attr("row");
-      cIndex = $(this).attr("col");
+      var rIndex = $(this).attr("row");
+      var cIndex = $(this).attr("col");
 
       if (singleRowBoard.slots[rIndex][cIndex].tileId === draggable.attr("id")) {
         // Allow drop tile back to its current slot
         return true;
       } else if (!isSlotFilled(rIndex, cIndex) && (isBoardEmpty() || isSingleRowBoardPreviousSlotFilled(rIndex, cIndex))) {
         // Check the slot is empty first. Then check the single row board is empty (this is the first tile) or the previous slot is filled.
+        // This is to satisfy the requirement: "Except for the first letter, all sub-subsequent letters must be placed directly next to or below 
+        // another letter with no space. Else, they will bounce back to the 'rack'."
         return true;
       } else {
         // Otherwise, return false and block tile to be dropped to the selected slot.
         return false;
       }
     },
-    activeClass: "highlightDropTarget",
-    hoverClass: "highlightHoverTarget",
     drop: function(event, ui) {
-      var rIndex, cIndex, letter, tileId, previousPositionOnBoard;
-
-      rIndex = $(this).attr("row");
-      cIndex = $(this).attr("col");
-      ui.draggable.removeClass("letterTileOnRack");
-      ui.draggable.addClass("letterTileOnBoard");
-      letter = ui.draggable.attr("letter");
-      tileId = ui.draggable.attr("id");
+      var previousPositionOnBoard;
+      var rIndex = $(this).attr("row");
+      var cIndex = $(this).attr("col");
+      var tileId = ui.draggable.attr("id");
+      var letter = ui.draggable.attr("letter");
 
       // Make sure tile can be dropped exactly on top of the slot area.
       $(ui.draggable).css("left", "").css("top", "");
       $(this).append(ui.draggable);
 
-      // When a blank tile is first placed on the board, open up a dialog and let the user
-      // pick a letter for the blank tile. Otherwise move on.
+      // Generate replacing dialog and open if dragged tile is a blank tile and moved from rack to board.
+      // If the blank tile is moved within the single row board means user already made the choice at the first time so not show replacing dialog again.
       previousPositionOnBoard = findSlotBasedOnLetterTileId(tileId);
       if ($(ui.draggable).hasClass("blankTile") && previousPositionOnBoard.length === 0) {
         generateBlankTileReplacingDialog($(ui.draggable), tileId, rIndex, cIndex);
       } else {
         dropLetterTileToSlot(rIndex, cIndex, tileId, letter);
-        // Validate and display the word we have so far.
-        verifyFormedWord();
 
-        // Calculate the score and update the page.
-        updateGameScore();
+        // Validate the new word after drag the tile from rack to board and update score.
+        handleTileMove();
       }
+
+      // update tile's class since it is located in single row board now.
+      toggleTileClass(true, ui);
     }
   });
 
-  // Make the rack droppable so the tiles can be moved from the board to the rack.
+  // Setup droppable for rack to handle dragging of tiles from single row board to the rack.
   $("#board_rack").droppable({
+    tolerance: "touch",
     activeClass: "highlightDropTarget",
     hoverClass: "highlightHoverTarget",
-    tolerance: "touch",
     drop: function(event, ui) {
-      var tileId, pos;
+      var tileId, tileCoordinates;
+      var boardRack = $("#board_rack");
 
-      ui.draggable.removeClass("letterTileOnBoard");
-      ui.draggable.addClass("letterTileOnRack");
+      tileId = ui.draggable.attr("id");
+      tileCoordinates = findSlotBasedOnLetterTileId(tileId);
+      if (tileCoordinates.length <= 0) {
+        // Use jquery ui draggable's revert method to put tile back to the slot it came from in rack
+        ui.draggable.draggable("option", "revert", true);
+      } else {
+        // Clear selected slot since the tile is dragged back to rack
+        clearSingleRowBoardSlot(tileCoordinates[0], tileCoordinates[1]);
+        ui.draggable.css({"position": "relative", "top": "", "left": ""});
+        boardRack.append(ui.draggable);
+
+        // Validate the new word after drag back the tile from board and update score.
+        handleTileMove();
+      }
 
       // Replace blank tile when drag back to rack.
+      // When move blank tile to board, we only replace its letter but the class still remain the same.
+      // So we can use it to identify if a tile is blank or not even its letter changed.
       if ($(ui.draggable).hasClass("blankTile")) {
         $(ui.draggable).attr("src", ScrabbleTileImages["_"]);
       }
-
-      tileId = ui.draggable.attr("id");
-      pos = findSlotBasedOnLetterTileId(tileId);
-      if (pos.length > 0) {
-        // Clear selected slot since the tile is dragged back to rack
-        clearSingleRowBoardSlot(pos[0], pos[1]);
-        $("#board_rack").append(ui.draggable);
-        ui.draggable.css({"position": "relative", "top": "", "left": ""});
-
-        // Validate and display the word we have so far.
-        word = verifyFormedWord();
-
-        // Calculate the score and update the page.
-        updateGameScore();
-      } else {
-        // User grabbed the tile and put it right back on the rack. Use the revert function
-        // to put the tile in the same spot it came out of.
-        ui.draggable.draggable("option", "revert", true);
-      }
+      toggleTileClass(false, ui);
     }
   });
 
-  // Set the board and tiles. Start the first word.
+  // Start a new game once window load completely and the initialization of board, rack, and tiles are done.
   newGame();
 });

@@ -46,8 +46,7 @@ h1 {
 	font-size: 36px;
 }
 
-/* set the style for table div section. The major settings include minimum and maximum height.*/
-/* also set this div to be scrollbar automatically when table is over the size of the screen*/
+/* set the style for game_area section. The major settings include minimum and maximum height.*/
 #game_area {
 	min-height: 550px;
 	max-height: 550px;
@@ -57,7 +56,7 @@ h1 {
 	box-shadow: 0px 2px 16px grey;
 }
 
-/* set the style for all th cells (header row) inside of table. The major settings include border's color and width, cell's width, etc.*/
+/* set the style for single_row_board. The major settings include margin, text-align, background-image, etc.*/
 #single_row_board { 
 	margin-left: auto; 
 	margin-right: auto;
@@ -69,8 +68,7 @@ h1 {
 	height: 80px;
 }
 
-/* set the style for all td cells inside of table. The major settings include border's color and width, cell's width, etc.*/
-/* Board slots. Margin, padding, and border thickness are to be set by JavaScript. */
+/* set the style for single_row_board_slot The major settings include border's color and width, float, etc.*/
 .single_row_board_slot { 
 	border-style: solid; 
 	border-color: rgba(0, 0, 0, 0.1);
@@ -81,8 +79,7 @@ h1 {
 	border-width: 1px;
 }
 
-/* set the style for all odd number rows inside of table. The major settings include background color and font color.*/
-/* so that all rows with odd index will have different background color than the even index rows.*/
+/* set the style for score_table. The major settings include border color and margin, etc.*/
 #score_table { 
 	width: 600px; 
 	margin: 30px auto 10px auto; 
@@ -96,13 +93,12 @@ h1 {
 	display: inline-block;
 }
 
-/* Values that follow the labels ...*/
 #score_table > div > div:nth-child(2) { 
-	width: 72px; 
 	font-weight: bold; 
+	width: 72px; 
 }
 
-/* set the style for first column inside of table. The major settings include background color, border and font color.*/
+/* set the style for board_rack, major settings include margin and background-image and width and height.*/
 #board_rack { 
 	width: 640px;
 	height: 180px;
@@ -112,27 +108,32 @@ h1 {
 	background-image: url("../graphics_data/scrabble-tile-holder-406774_640.png");
 }
 
+/* set the style for buttonSection, major settings include margin and text align.*/
 .buttonSection { 
 	margin: auto; 
 	margin-bottom: 20px; 
 	text-align: center;
 }
 
+/* set the basic style for letterTile, major settings include margin and width.*/
 .letterTile {
 	border-radius: 4px; 
 	margin: 0px; 
 	width: 70px; 
 }
 
-/* Adjust position so the tile sits naturally on the rack and board background image. */
+/* set the style for letterTileOnRack, major settings include margin.*/
 .letterTileOnRack  {
-	margin: 27px 5px 0px 5px; 
+	margin: 25px 5px 0px 5px; 
 }
 
-.letterTileOnBoard {
-	top: 3px; 
+/* set the style for letterTileOnSingleRowBoard, major settings include its position.*/
+.letterTileOnSingleRowBoard {
+	top: 1px;
+	right: 1px; 
 }
 
+/* set the style for letterTileInReplacingDialog, major settings include its size and margin, float.*/
 .letterTileInReplacingDialog { 
 	width: 40px; 
 	height: 44px; 
@@ -142,18 +143,19 @@ h1 {
 
 .letterTileInReplacingDialog:hover { 
 	cursor: pointer; 
-	box-shadow: 0px 0px 5px blue; 
+	box-shadow: 0px 0px 5px orange; 
 }
 
 /* Highlight drop targets when dragging a tile and hovering over a specific board slot. */
 .highlightDropTarget {
-	box-shadow: 0px 0px 15px green;
+	box-shadow: 0px 0px 15px purple;
 }
 
 .highlightHoverTarget { 
-	box-shadow: 0px 0px 15px blue; 
+	box-shadow: 0px 0px 15px green; 
 }
 
+/* Used when hide a component in the page. (eg. toggle the next word button, etc.) */
 .hidden {
 	display:none;
 }
@@ -188,6 +190,7 @@ button:disabled {
 	cursor: default;
 }
 
+/* set the style for remaining_tiles_section, major settings include font and text align.*/
 #remaining_tiles_section {
 	text-align: center;
 	font-weight: bold;
@@ -195,6 +198,7 @@ button:disabled {
 	display: inline;
 }
 
+/* set the style for errorSection, major settings include margin, font and text align.*/
 #errorSection {
 	text-align: center;
 	font-weight: bold;
